@@ -10,6 +10,7 @@ function App() {
   const [isComputerOpponent, setIsComputerOpponent] = useState(false);
   const [showFooter, setShowFooter] = React.useState(true);
   const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [currentPlayerID, setCurrentPlayerID] = useState(null);
   const [timePerTurn, setTimePerTurn] = useState(30); 
 
 
@@ -45,6 +46,7 @@ function App() {
       setGameId(newGame.id);
       setCurrentPlayer("White"); // Setzen des aktuellen Spielers auf "White"
       setShowPlayground(true);
+      setCurrentPlayerID(player1.id);
     } catch (error) {
       console.error("Ein Fehler ist aufgetreten:", error);
     }
@@ -68,6 +70,7 @@ function App() {
         setGameId(currentGame.id);
         setCurrentPlayer("Black"); // Setzen des aktuellen Spielers auf "Black"
         setShowPlayground(true);
+        setCurrentPlayerID(currentGame.player[1].id);
       } else {
         alert("Es gibt keinen zweiten Spieler im Spiel.");
       }
@@ -137,7 +140,7 @@ function App() {
             <button id="joinGame" onClick={handleJoinGame}>Join Game</button>
           </div>
         ) : (
-          <Playground playerName={currentPlayer} gameId={gameId} />
+          <Playground playerName={currentPlayer} gameId={gameId} currentPlayerID={currentPlayerID} />
         )}
          <div className="help">
             <details className="help">  {/* Hilfe Objekte zur Erklärung des Spiels */}

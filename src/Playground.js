@@ -6,7 +6,7 @@ class Playground extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-        activePlayer: 1,
+        activePlayer: "White",
         phase: "select",
         startX: 0,
         startY: 0,
@@ -37,9 +37,12 @@ class Playground extends React.Component {
     } catch (error) {
       console.error('An error occurred:', error);
     }
-    this.interval = setInterval(this.fetchOpponentMove, 1000);
+    this.interval = setInterval(() => {
+      if (this.props.playerName !== this.state.activePlayer) {
+        this.fetchOpponentMove();
+      }
+    }, 5000);
   }
-
   componentWillUnmount() {
     clearInterval(this.interval);
   }
@@ -160,14 +163,14 @@ class Playground extends React.Component {
     let legal = this.state.legal;
   
     // Überprüfen, ob der aktuelle Spieler seine eigenen Figuren bewegt
-    const currentPlayerSymbol = this.props.playerName === "White" ? "♕" : "♛";
+    const currentPlayerSymbol = activePlayer === "White" ? "♕" : "♛";
   
     if (!tableData[rowIndex] || !tableData[rowIndex][cellIndex]) {
       return; // Frühzeitiger Ausstieg, wenn die Indizes ungültig sind
     }
   
     // Überprüfen, ob der aktuelle Spieler am Zug ist und seine eigene Figur auswählt
-    if (tableData[rowIndex][cellIndex] === currentPlayerSymbol && this.props.playerName === activePlayer && phase !== "shoot") {
+    if (tableData[rowIndex][cellIndex] === currentPlayerSymbol && activePlayer === this.props.playerName && phase !== "shoot") {
       startX = rowIndex;
       startY = cellIndex;
       for (let i = startY - 1; i <= startY + 1; i++) {
@@ -180,7 +183,7 @@ class Playground extends React.Component {
       }
   
     // Wenn der aktuelle Spieler am Zug ist und den Zielpunkt der zu bewegenden Figur wählt
-    } else if (phase === "move" && this.props.playerName === activePlayer) {
+    } else if (phase === "move" && activePlayer === this.props.playerName) {
       endX = rowIndex;
       endY = cellIndex;
       legal = this.checkIfFree(startX, startY, endX, endY);
@@ -191,7 +194,7 @@ class Playground extends React.Component {
       }
   
     // Wenn der Schuss gemacht werden soll (den treffenden Zielpunkt deaktivieren als Spielfeld)
-    } else if (phase === "shoot" && this.props.playerName === activePlayer) {
+    } else if (phase === "shoot" && activePlayer === this.props.playerName) {
       shotX = rowIndex;
       shotY = cellIndex;
       legal = this.checkIfFree(endX, endY, shotX, shotY);
@@ -200,7 +203,7 @@ class Playground extends React.Component {
         const nextPlayer = activePlayer === "White" ? "Black" : "White";
         const move = { startX, startY, endX, endY };
         const shot = { shotX, shotY };
-        this.sendMoveToServer(this.props.playerName, move, shot);
+        this.sendMoveToServer(this.props.currentPlayerID, move, shot);
         this.setState({
           activePlayer: nextPlayer,
           phase: "select",
@@ -234,7 +237,6 @@ class Playground extends React.Component {
       legal,
     });
   }
-  
 
 // Funktion zum Senden des Zugs an den Server
 async sendMoveToServer(playerId, move, shot) {
@@ -242,7 +244,7 @@ async sendMoveToServer(playerId, move, shot) {
     const response = await makeMove(playerId, this.props.gameId, move, shot);
     if (response.status !== 200) {
       console.error('Error:', response.status);
-      console.error('Error Text:', await response.text());
+      console.error('Error Text:', await response.json);
     } else {
       console.log('Move sent:', response);
     }
@@ -254,6 +256,10 @@ async sendMoveToServer(playerId, move, shot) {
 
   // Funktion zum Abrufen des Zugs des gegnerischen Spielers vom Server
   async fetchOpponentMove() {
+    if (!this.props.gameId) {
+      console.error('Game ID is not available.');
+      return;
+    }
     try {
       const game = await getGameById(this.props.gameId);
       // Logik zum Aktualisieren des Spielfelds mit dem Zug des Gegners
@@ -291,7 +297,7 @@ async sendMoveToServer(playerId, move, shot) {
     //rücksetzen auf default
   handleReset() {
     this.setState({
-      activePlayer: 1,
+      activePlayer: "White",
       phase: "select",
       startX: 0,
       startY: 0,
@@ -318,7 +324,7 @@ async sendMoveToServer(playerId, move, shot) {
 
   //aufbau des Spielfeldes in der Website
   render() {
-    const bg = [
+    let bg = [
       [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
       [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
       [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
@@ -332,15 +338,24 @@ async sendMoveToServer(playerId, move, shot) {
     ];
 
     const renderCell = (rowIndex, cellIndex, value, cell) => {
-      return <td key={cellIndex} className={cell === -1 ? "w" : cell === 0 ? "b" : "text"} onClick={() => this.Game(rowIndex, cellIndex)}>{value}</td>;
+      let displayValue = value;
+      if (value === "♛") {
+        displayValue = "🖤";  // Ersetzt durch ein anderes Emoji
+      } else if (value === "♕") {
+        displayValue = "❤️";  // Ersetzt durch ein anderes Emoji
+      } else if (value === "🔥") {
+        displayValue = "💥";  // Ersetzt durch ein anderes Emoji
+      }
+    
+      return (
+        <td key={cellIndex} className={cell === -1 ? "w" : cell === 0 ? "b" : "text"} onClick={() => this.Game(rowIndex, cellIndex)}>
+          {displayValue}
+        </td>
+      );
     };
 
-    const renderPlayer = () => {
-      if (this.state.activePlayer === 1) {
-        return <p>Player: White</p>
-      } else {
-        return <p>Player: Black</p>
-      }
+     const renderPlayer = () => {
+      return <p>Player: {this.state.activePlayer}</p>
     };
 
     const renderPhase = () => {

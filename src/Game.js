@@ -2,15 +2,21 @@
 
 async function fetchWithCheck(url, options = {}) {
   const response = await fetch(url, options);
-  if (!response.ok) {
-    try {
-      const data = await response.json();
-      throw new Error(`HTTP error! status: ${response.status}, message: ${data.message || response.statusText}`);
-    } catch (e) {
-      throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`);
-    }
+  let data;
+
+  // Try to parse the response as JSON, whether it's OK or not
+  try {
+    data = await response.json();
+  } catch (e) {
+    // If parsing fails, use the status text as the message
+    data = { message: response.statusText };
   }
-  return response.json();
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}, message: ${data.message || response.statusText}`);
+  }
+
+  return data;
 }
 
 // Spieler anlegen
@@ -79,12 +85,30 @@ export async function deleteGame(id) {
 
 export async function makeMove(playerId, gameId, move, shot) {
   try {
+    const formattedMove = {
+      start: {
+        row: move.startX,
+        column: move.startY
+      },
+      end: {
+        row: move.endX,
+        column: move.endY
+      }
+    };
+
+    const formattedShot = {
+      row: shot.shotX,
+      column: shot.shotY
+    };
+    const response = JSON.stringify({ move: formattedMove, shot: formattedShot })
+    alert(response+"s")
+
     return fetchWithCheck(`https://gruppe5.toni-barth.com/move/${playerId}/${gameId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ move, shot })
+      body: JSON.stringify({ move: formattedMove, shot: formattedShot })  // Verwendung der angepassten Objekte
     });
   } catch (error) {
     console.error('An error occurred:', error);
@@ -99,3 +123,4 @@ export async function resetAll() {
     method: 'DELETE'
   });
 }
+
