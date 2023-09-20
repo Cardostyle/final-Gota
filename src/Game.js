@@ -99,14 +99,3 @@ export async function resetAll() {
     method: 'DELETE'
   });
 }
-
-// Spiel aktualisieren
-export async function updateGame(updatedGame) {
-  return fetchWithCheck(`https://gruppe5.toni-barth.com/games/${updatedGame.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ players: updatedGame.players })
-  });
-}

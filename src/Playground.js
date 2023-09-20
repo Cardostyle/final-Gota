@@ -16,17 +16,16 @@ class Playground extends React.Component {
         shotY: 0,
         legal: false,
         tableData: [
-          [" ", "a", "b", "c", "d", "e", "f", "g", "h", "i","j"],
-          [10, " ", " ", " ", "♛", " ", " ", "♛", " ", " ", " "],
-          [9, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [8, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [7, "♛", " ", " ", " ", " ", " ", " ", " ", " ", "♛"],
-          [6, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [5, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [4, "♕", " ", " ", " ", " ", " ", " ", " ", " ", "♕"],
-          [3, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [2, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [1, " ", " ", " ", "♕", " ", " ", "♕", " ", " ", " "],
+          [" ", " ", " ", "♛", " ", " ", "♛", " ", " ", " "],
+          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+          ["♛", " ", " ", " ", " ", " ", " ", " ", " ", "♛"],
+          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+          ["♕", " ", " ", " ", " ", " ", " ", " ", " ", "♕"],
+          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+          [" ", " ", " ", "♕", " ", " ", "♕", " ", " ", " "],
         ]
       };
   }
@@ -38,6 +37,11 @@ class Playground extends React.Component {
     } catch (error) {
       console.error('An error occurred:', error);
     }
+    this.interval = setInterval(this.fetchOpponentMove, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
 
   checkIfFree(startX, startY, endX, endY) {
@@ -154,102 +158,83 @@ class Playground extends React.Component {
     let shotX = this.state.shotX;
     let shotY = this.state.shotY;
     let legal = this.state.legal;
-    
-  if (!tableData[rowIndex] || !tableData[rowIndex][cellIndex]) {
-    return; // Frühzeitiger Ausstieg, wenn die Indizes ungültig sind
-  }
-
-  //wenn spieler 1 am zug ist und seine zu bewegende Königin wählt
-  if (tableData[rowIndex][cellIndex] === "♕" && activePlayer === 1 && phase !== "shoot") {
-    startX = rowIndex;
-    startY = cellIndex;
-    for (let i = startY - 1; i <= startY + 1; i++) {
-      for (let j = startX - 1; j <= startX + 1; j++) {
-        if (tableData[j] && tableData[j][i] === " " && i !== 0) {
-          phase = "move";
-          break;
+  
+    // Überprüfen, ob der aktuelle Spieler seine eigenen Figuren bewegt
+    const currentPlayerSymbol = this.props.playerName === "White" ? "♕" : "♛";
+  
+    if (!tableData[rowIndex] || !tableData[rowIndex][cellIndex]) {
+      return; // Frühzeitiger Ausstieg, wenn die Indizes ungültig sind
+    }
+  
+    // Überprüfen, ob der aktuelle Spieler am Zug ist und seine eigene Figur auswählt
+    if (tableData[rowIndex][cellIndex] === currentPlayerSymbol && this.props.playerName === activePlayer && phase !== "shoot") {
+      startX = rowIndex;
+      startY = cellIndex;
+      for (let i = startY - 1; i <= startY + 1; i++) {
+        for (let j = startX - 1; j <= startX + 1; j++) {
+          if (tableData[j] && tableData[j][i] === " " && i !== 0) {
+            phase = "move";
+            break;
+          }
         }
       }
-    }
-
-  //wenn spieler 2 am zug ist und seine zu bewegende Königin wählt
-  } else if (tableData[rowIndex][cellIndex] === "♛" && activePlayer === 2 && phase !== "shoot") {
-    startX = rowIndex;
-    startY = cellIndex;
-    for (let i = startY - 1; i <= startY + 1; i++) {
-      for (let j = startX - 1; j <= startX + 1; j++) {
-        if (tableData[j] && tableData[j][i] === " " && i !== 0) {
-          phase = "move";
-          break;
-        }
+  
+    // Wenn der aktuelle Spieler am Zug ist und den Zielpunkt der zu bewegenden Figur wählt
+    } else if (phase === "move" && this.props.playerName === activePlayer) {
+      endX = rowIndex;
+      endY = cellIndex;
+      legal = this.checkIfFree(startX, startY, endX, endY);
+      if (legal) {
+        tableData[startX][startY] = " ";
+        tableData[endX][endY] = currentPlayerSymbol;
+        phase = "shoot";
       }
-    }
-
-  //wenn spieler 1 am Zug ist und den Zielpunkt der zu bewegenden Königin wählt.
-  } else if (phase === "move" && activePlayer === 1) {
-    endX = rowIndex;
-    endY = cellIndex;
-    legal = this.checkIfFree(startX, startY, endX, endY);
-    if (legal) {
-      tableData[startX][startY] = " ";
-      tableData[endX][endY] = "♕";
-      phase = "shoot";
-    }
-  //wenn spieler 2 am Zug ist und den Zielpunkt der zu bewegenden Königin wählt.
-  } else if (phase === "move" && activePlayer === 2) {
-    endX = rowIndex;
-    endY = cellIndex;
-    legal = this.checkIfFree(startX, startY, endX, endY);
-    if (legal) {
-      tableData[startX][startY] = " ";
-      tableData[endX][endY] = "♛";
-      phase = "shoot";
-    }
-
-    //Wenn der Schuss gemacht werden soll (den treffenden Zielpunkt deaktivieren als Spielfeld)
-  } else if (phase === "shoot") {
-    shotX = rowIndex;
-    shotY = cellIndex;
-    legal = this.checkIfFree(endX, endY, shotX, shotY);
-    if (legal) {
-      tableData[rowIndex][cellIndex] = "🔥";
-      const nextPlayer = activePlayer === 1 ? 2 : 1;
+  
+    // Wenn der Schuss gemacht werden soll (den treffenden Zielpunkt deaktivieren als Spielfeld)
+    } else if (phase === "shoot" && this.props.playerName === activePlayer) {
+      shotX = rowIndex;
+      shotY = cellIndex;
+      legal = this.checkIfFree(endX, endY, shotX, shotY);
+      if (legal) {
+        tableData[rowIndex][cellIndex] = "🔥";
+        const nextPlayer = activePlayer === "White" ? "Black" : "White";
         const move = { startX, startY, endX, endY };
         const shot = { shotX, shotY };
-        this.sendMoveToServer(this.state.activePlayer, move, shot);
-      this.setState({
-        activePlayer: nextPlayer,
-        phase: "select",
-        startX: 0,
-        startY: 0,
-        endX: 0,
-        endY: 0,
-        shotX: 0,
-        shotY: 0,
-        legal: false,
-        tableData: [...tableData],
-      });
-
-       //test ob ein Spieler gewonnen hat.
-      if (this.playerWon(activePlayer)) {
-        alert("Spieler " + activePlayer + " hat gewonnen!");
+        this.sendMoveToServer(this.props.playerName, move, shot);
+        this.setState({
+          activePlayer: nextPlayer,
+          phase: "select",
+          startX: 0,
+          startY: 0,
+          endX: 0,
+          endY: 0,
+          shotX: 0,
+          shotY: 0,
+          legal: false,
+          tableData: [...tableData],
+        });
+  
+        // Testen, ob ein Spieler gewonnen hat
+        if (this.playerWon(activePlayer)) {
+          alert("Spieler " + activePlayer + " hat gewonnen!");
+        }
+        return;
       }
-      return;
     }
+  
+    this.setState({
+      activePlayer,
+      phase,
+      startX,
+      startY,
+      endX,
+      endY,
+      shotX,
+      shotY,
+      legal,
+    });
   }
-
-  this.setState({
-    activePlayer,
-    phase,
-    startX,
-    startY,
-    endX,
-    endY,
-    shotX,
-    shotY,
-    legal,
-  });
-}
+  
 
 // Funktion zum Senden des Zugs an den Server
 async sendMoveToServer(playerId, move, shot) {
@@ -316,17 +301,16 @@ async sendMoveToServer(playerId, move, shot) {
       shotY: 0,
       legal: false,
       tableData: [
-        [" ", "a", "b", "c", "d", "e", "f", "g", "h", "i","j"],
-        [10, " ", " ", " ", "♛", " ", " ", "♛", " ", " ", " "],
-        [9, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [8, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [7, "♛", " ", " ", " ", " ", " ", " ", " ", " ", "♛"],
-        [6, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [5, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [4, "♕", " ", " ", " ", " ", " ", " ", " ", " ", "♕"],
-        [3, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [2, " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [1, " ", " ", " ", "♕", " ", " ", "♕", " ", " ", " "],
+        [" ", " ", " ", "♛", " ", " ", "♛", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        ["♛", " ", " ", " ", " ", " ", " ", " ", " ", "♛"],
+        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        ["♕", " ", " ", " ", " ", " ", " ", " ", " ", "♕"],
+        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        [" ", " ", " ", "♕", " ", " ", "♕", " ", " ", " "],
       ]
     });
   }
@@ -335,27 +319,23 @@ async sendMoveToServer(playerId, move, shot) {
   //aufbau des Spielfeldes in der Website
   render() {
     const bg = [
-      ["reset", "a", "b", "c", "d", "e", "f", "g", "h", "i","j"],
-      [10, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [9, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [8, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [7, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [6, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [5, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [4, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [3, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [2, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
+      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
+      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
+      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
+      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
+      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
+      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
+      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
+      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
+      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
+      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
     ];
+
     const renderCell = (rowIndex, cellIndex, value, cell) => {
-      if (rowIndex === 0 || cellIndex === 0) {
-        return <td key={cellIndex} className={cell === -1 ? "w" : cell === 0 ? "b" : "text"}>{value}</td>;
-      } else {
-        return <td key={cellIndex} className={cell === -1 ? "w" : cell === 0 ? "b" : "text"} onClick={() => this.Game(rowIndex, cellIndex)}>{value}</td>;
-      }
+      return <td key={cellIndex} className={cell === -1 ? "w" : cell === 0 ? "b" : "text"} onClick={() => this.Game(rowIndex, cellIndex)}>{value}</td>;
     };
 
-    const renderPlayer=() => {
+    const renderPlayer = () => {
       if (this.state.activePlayer === 1) {
         return <p>Player: White</p>
       } else {
@@ -363,11 +343,10 @@ async sendMoveToServer(playerId, move, shot) {
       }
     };
 
-    const renderPhase=()=> {
-        return <p>Phase: {this.state.phase}</p>
-      }
+    const renderPhase = () => {
+      return <p>Phase: {this.state.phase}</p>
+    }
 
-    //Ausgabe des HTML Codes - übergabe an React
     return (
       <div>
         <button onClick={() => this.handleReset()}>Reset</button>
@@ -392,5 +371,4 @@ async sendMoveToServer(playerId, move, shot) {
     );
   }
 }
-
 export default Playground;
