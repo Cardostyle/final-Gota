@@ -362,9 +362,39 @@ async sendMoveToServer(playerId, move, shot) {
       return <p>Phase: {this.state.phase}</p>
     }
 
+    const handleDeleteGame = async () => {
+      try {
+        let game;
+        try{// Schritt 1: Spielinformationen abrufen
+          game = await getGameById(this.props.gameId);
+        }catch (error){
+          // Seite neu laden
+          window.location.reload();      
+        }
+    
+          // Schritt 2: Spiel löschen
+          await deleteGame(this.props.gameId);
+
+        // Schritt 3: Spieler-IDs extrahieren und in Ganzzahlen umwandeln
+        const players = game.players;
+
+
+        // Schritt 4: Jeden Spieler löschen
+        for (const player of players) {
+          await deletePlayer(player.id);
+        }
+
+        // Seite neu laden
+        window.location.reload();  
+      } catch (error) {
+        console.error('Ein Fehler ist aufgetreten:', error);
+      }
+    };
+
     return (
       <div>
         <button onClick={() => this.handleReset()}>Reset</button>
+      {this.props.gameId && <button onClick={handleDeleteGame}>Spiel verlassen</button>}
         <div>{renderPlayer()}</div>  
         <div>{renderPhase()}</div>  
         <div className="playground-container">
@@ -381,7 +411,6 @@ async sendMoveToServer(playerId, move, shot) {
             Game ID: {this.props.gameId}
           </div>
         </div>  
-        <br/><br/><br/><br/><br/><br/><br/>
       </div>
     );
   }

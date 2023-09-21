@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import Playground from './Playground';
 import './App.css';
-import { createPlayer, createGame, getGameById, deletePlayer } from './Game'; // Importieren der API-Funktionen
+import { createPlayer, createGame, getGameById, resetAll, getAllGames } from './Game'; // Importieren der API-Funktionen
 
 function App() {
   const [showPlayground, setShowPlayground] = useState(false);
@@ -12,7 +12,11 @@ function App() {
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [currentPlayerID, setCurrentPlayerID] = useState(null);
   const [timePerTurn, setTimePerTurn] = useState(30); 
+  const [gamesList, setGamesList] = useState([]);
 
+  useEffect(() => {
+    fetchGames();
+  }, []);
 
   const handleStartGame = async () => {
     try {
@@ -95,6 +99,25 @@ function App() {
     setTimePerTurn(e.target.value);
   };
 
+  const handleResetAll = async () => {
+    try {
+      await resetAll();
+      alert("Alles wurde zurückgesetzt.");
+    } catch (error) {
+      console.error("Ein Fehler ist aufgetreten:", error);
+    }
+  };
+
+  const fetchGames = async () => {
+    try {
+      const games = await getAllGames();
+      console.log(games);
+      setGamesList(games);
+    } catch (error) {
+      console.error("Ein Fehler ist aufgetreten:", error);
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -138,6 +161,12 @@ function App() {
             <label htmlFor="GameId">Game ID</label>
             <input id="gameId" value={gameId} onChange={handleGameIdChange}></input>
             <button id="joinGame" onClick={handleJoinGame}>Join Game</button>
+            <ul>
+              <h3>Offene Spiele:</h3>
+              {gamesList.map((game, index) => (
+                <li key={index}>Game ID: {game.id}</li>
+              ))}
+            </ul>
           </div>
         ) : (
           <Playground playerName={currentPlayer} gameId={gameId} currentPlayerID={currentPlayerID} />
@@ -181,7 +210,13 @@ function App() {
           </p>
         </footer>
       )}
-    </div>
+    {!showPlayground && (
+      <button className="reset-button" onClick={resetAll}>
+        Reset everything
+      </button>
+    )}
+    <br/><br/><br/><br/><br/><br/><br/>
+  </div>
   );
 }
 

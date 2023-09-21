@@ -101,7 +101,7 @@ export async function makeMove(playerId, gameId, move, shot) {
       column: shot.shotY
     };
     const response = JSON.stringify({ move: formattedMove, shot: formattedShot })
-    alert(response+"s")
+    alert(response)
 
     return fetchWithCheck(`https://gruppe5.toni-barth.com/move/${playerId}/${gameId}`, {
       method: 'POST',
