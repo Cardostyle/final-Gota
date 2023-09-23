@@ -13,6 +13,7 @@ function App() {
   const [currentPlayerID, setCurrentPlayerID] = useState(null);
   const [timePerTurn, setTimePerTurn] = useState(30); 
   const [gamesList, setGamesList] = useState([]);
+  const [numOfAmazons, setNumOfAmazons] = useState(1);
 
   useEffect(() => {
     fetchGames();
@@ -32,18 +33,10 @@ function App() {
       const players = [player1.id, player2.id];
       const gameSizeRows = boardSize; // Verwenden des boardSize Zustands
       const gameSizeColumns = boardSize; // Verwenden des boardSize Zustands
-      const squares = [
-        [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-        [0, -1, -1, -1, -1, -1, -1, -1, -1, 0],
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        [1, -1, -1, -1, -1, -1, -1, -1, -1, 1],
-        [1, -1, 1, -1, 1, -1, 1, -1, 1, -1]
-      ];
+      // Dynamische Erstellung des Squares Arrays
+      const squares = Array.from({ length: gameSizeRows }, () => 
+      Array.from({ length: gameSizeColumns }, () => -1)
+      );
   
       const newGame = await createGame(timePerTurn*1000, players, gameSizeRows, gameSizeColumns, squares);
   
@@ -88,7 +81,7 @@ function App() {
   };
 
   const handleBoardSizeChange = (e) => {
-    setBoardSize(e.target.value);
+    setBoardSize(parseInt(e.target.value));
   };
 
   const handleIsComputerOpponentChange = (e) => {
@@ -124,7 +117,7 @@ function App() {
         <h1>Game of the Amazons</h1>
       </header>
       <main>
-      {!showPlayground ? (
+        {!showPlayground ? (
           <div>
             <label htmlFor="boardSize">Spielfeldgröße</label>
             <input
@@ -137,17 +130,31 @@ function App() {
             />
             <span>{boardSize}</span>
             <br />
+  
             <label htmlFor="timePerTurn">Zeit pro Zug</label>
-              <input
-                type="range"
-                id="timePerTurn"
-                min="30"
-                max="600"
-                value={timePerTurn}
-                onChange={handleTimePerTurnChange}
-              />
-              <span>{timePerTurn}</span>
-              <br />
+            <input
+              type="range"
+              id="timePerTurn"
+              min="30"
+              max="600"
+              value={timePerTurn}
+              onChange={handleTimePerTurnChange}
+            />
+            <span>{timePerTurn}</span>
+            <br />
+  
+            <label htmlFor="numOfAmazons">Anzahl der Amazonen</label>
+            <input
+              type="range"
+              id="numOfAmazons"
+              min="1"
+              max="10"
+              value={numOfAmazons}
+              onChange={(e) => setNumOfAmazons(e.target.value)}
+            />
+            <span>{numOfAmazons}</span>
+            <br />
+  
             <label htmlFor="isComputerOpponent">COM</label>
             <input
               type="checkbox"
@@ -156,6 +163,7 @@ function App() {
               onChange={handleIsComputerOpponentChange}
             />
             <br />
+  
             <button id="createGame" onClick={handleStartGame}>Create Game</button>
             <div className="separator"></div>
             <label htmlFor="GameId">Game ID</label>
@@ -169,7 +177,13 @@ function App() {
             </ul>
           </div>
         ) : (
-          <Playground playerName={currentPlayer} gameId={gameId} currentPlayerID={currentPlayerID} />
+          <Playground 
+            playerName={currentPlayer} 
+            gameId={gameId} 
+            currentPlayerID={currentPlayerID} 
+            size={boardSize} 
+            numOfAmazons={numOfAmazons}  // Übergeben als Requisit
+          />
         )}
          <div className="help">
             <details className="help">  {/* Hilfe Objekte zur Erklärung des Spiels */}
@@ -211,7 +225,7 @@ function App() {
         </footer>
       )}
     {!showPlayground && (
-      <button className="reset-button" onClick={resetAll}>
+      <button className="reset-button" onClick={handleResetAll}>
         Reset everything
       </button>
     )}

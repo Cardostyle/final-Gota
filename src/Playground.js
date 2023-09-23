@@ -1,10 +1,13 @@
 //Playground.js
 import React from 'react';
-import { createPlayer, getAllPlayers, deletePlayer, createGame, getAllGames, getGameById, deleteGame, makeMove, resetAll } from './Game';
+import {deletePlayer, getGameById, deleteGame, makeMove } from './Game';
 
+
+//Konstruktor
 class Playground extends React.Component {
   constructor(props) {
     super(props);
+    const size = this.props.size; // Größe vom Parent (App.js) erhalten
     this.state = {
         activePlayer: "White",
         phase: "select",
@@ -15,40 +18,62 @@ class Playground extends React.Component {
         shotX: 0,
         shotY: 0,
         legal: false,
-        tableData: [
-          [" ", " ", " ", "♛", " ", " ", "♛", " ", " ", " "],
-          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          ["♛", " ", " ", " ", " ", " ", " ", " ", " ", "♛"],
-          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          ["♕", " ", " ", " ", " ", " ", " ", " ", " ", "♕"],
-          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-          [" ", " ", " ", "♕", " ", " ", "♕", " ", " ", " "],
-        ]
+        tableData: Array.from({ length: size }, () => Array.from({ length: size }, () => " ")),
+        bg: Array.from({ length: size }, (_, i) => Array.from({ length: size }, (_, j) => (i + j) % 2 === 0 ? 0 : -1)),
       };
   }
 
-  async componentDidMount() {
-    try {
-      const players = await getAllPlayers();
-      console.log('Players:', players);
-    } catch (error) {
-      console.error('An error occurred:', error);
+  //Damen werden in einer Reihe platziert.
+  placeInitialAmazons() {
+    let { tableData } = this.state;
+    const numOfAmazons = this.props.numOfAmazons; // Anzahl der Amazonen von den props
+  
+    // Platzieren der schwarzen Amazonen in der ersten Reihe
+    for (let i = 0; i < numOfAmazons; i++) {
+      tableData[0][i] = "♛"; 
     }
+  
+    // Platzieren der weißen Amazonen in der letzten Reihe
+    for (let i = 0; i < numOfAmazons; i++) {
+      tableData[tableData.length - 1][i] = "♕"; 
+    }
+  
+    this.setState({ tableData });
+  }
+
+// Die Funktion initializeTableDataAndBg initialisiert die Spielfeld-Daten und den Hintergrund des Spielfelds.
+  initializeTableDataAndBg = (size) => {
+    // Erstellt ein leeres Spielfeld der gegebenen Größe (size x size) und füllt es mit Leerzeichen (" ").
+    let tableData = Array.from({ length: size }, () => Array.from({ length: size }, () => " "));
+    // Erstellt ein Array für den Hintergrund des Spielfelds.
+    let bg = Array.from({ length: size }, (_, i) => Array.from({ length: size }, (_, j) => (i + j) % 2 === 0 ? 0 : -1));
+    // Aktualisiert den Zustand der Komponente mit den neuen tableData und bg Arrays.
+    this.setState({ tableData, bg });
+  }
+
+  async componentDidMount() {
+    // try {
+    //   const players = await getAllPlayers();
+    //   console.log('Players:', players);
+    // } catch (error) {
+    //   console.error('An error occurred:', error);
+    // }
+
+    //Intervall für das Abrufen des Zugs des Gegners einrichten
     this.interval = setInterval(() => {
+      // Überprüfen, ob der aktuelle Spieler nicht am Zug ist
       if (this.props.playerName !== this.state.activePlayer) {
+        // Zug des Gegners abrufen
         this.fetchOpponentMove();
       }
     }, 5000);
-  }
-  componentWillUnmount() {
-    clearInterval(this.interval);
+
+    //Initialisierung des Spielfelds und Platzierung der Amazonen
+    this.initializeTableDataAndBg(this.props.size);
+    this.placeInitialAmazons();
   }
 
-  checkIfFree(startX, startY, endX, endY) {
-    
+  checkIfFree(startX, startY, endX, endY) {    
     const { tableData } = this.state;
     let legal = false;
 
@@ -241,32 +266,69 @@ class Playground extends React.Component {
 // Funktion zum Senden des Zugs an den Server
 async sendMoveToServer(playerId, move, shot) {
   try {
+    // Versucht, den Zug mit der Funktion makeMove() an den Server zu senden
     const response = await makeMove(playerId, this.props.gameId, move, shot);
+    
+    // Überprüft den Status der Antwort
     if (response.status !== 200) {
+      // Gibt Fehlerstatus und Fehlertext aus, wenn die Antwort nicht erfolgreich ist
       console.error('Error:', response.status);
       console.error('Error Text:', await response.json);
     } else {
+      // Gibt eine Erfolgsmeldung aus, wenn der Zug erfolgreich gesendet wurde
       console.log('Move sent:', response);
+    }
+  } catch (error) {
+    // Fängt etwaige Fehler ab und gibt sie in der Konsole aus
+    console.error('Ein Fehler ist aufgetreten:', error);
+  }
+}
+
+
+async fetchOpponentMove() {
+  if (!this.props.gameId) {
+    console.error('Game ID is not available.');
+    return;
+  }
+  try {
+    const game = await getGameById(this.props.gameId);
+    const turns = game.turns; // Liste aller Züge
+    const lastTurn = turns[turns.length - 1]; // Letzter Zug
+
+    if (lastTurn && game.turnPlayer === this.props.currentPlayerID) {
+      let { tableData, activePlayer } = this.state;
+
+      // Aktualisieren der Position der Amazonen basierend auf dem Zug des Gegners
+      const opponentMoveStart = lastTurn.move.start;
+      const opponentMoveEnd = lastTurn.move.end;
+      tableData[opponentMoveStart.row][opponentMoveStart.column] = " ";
+      tableData[opponentMoveEnd.row][opponentMoveEnd.column] = activePlayer === "White" ? "♛" : "♕";
+
+      // Aktualisieren des Schusses basierend auf dem Schuss des Gegners
+      const opponentShot = lastTurn.shot;
+      tableData[opponentShot.row][opponentShot.column] = "🔥";
+
+      // Aktualisieren des aktiven Spielers
+      activePlayer = this.props.playerName;
+
+      this.setState({
+        tableData,
+        activePlayer,
+        phase: "select",
+        startX: 0,
+        startY: 0,
+        endX: 0,
+        endY: 0,
+        shotX: 0,
+        shotY: 0,
+        legal: false,
+      });
     }
   } catch (error) {
     console.error('An error occurred:', error);
   }
 }
 
-
-  // Funktion zum Abrufen des Zugs des gegnerischen Spielers vom Server
-  async fetchOpponentMove() {
-    if (!this.props.gameId) {
-      console.error('Game ID is not available.');
-      return;
-    }
-    try {
-      const game = await getGameById(this.props.gameId);
-      // Logik zum Aktualisieren des Spielfelds mit dem Zug des Gegners
-    } catch (error) {
-      console.error('An error occurred:', error);
-    }
-  }
 
   //test ob sich der nicht aktive Spieler noch bewegen kann, wenn nicht dann hat active Player gewonnen
   playerWon(activePlayer){
@@ -276,12 +338,12 @@ async sendMoveToServer(playerId, move, shot) {
     }else{
       nextPlayer="♕";
     }
-      for (var n = 1; n < 11; n++) {
-        for (var m = 1; m < 11; m++) {
+      for (var n = 0; n < this.props.size; n++) {
+        for (var m = 0; m < this.props.size; m++) {
           if (this.state.tableData[n][m] === nextPlayer) {
             for (var i = -1; i < 2; i++) {
               for (var j = -1; j < 2; j++) {
-                if (j + m < 11 && j + m > 0 && i + n < 11 && i + n > 0) {
+                if (j + m < this.props.size && j + m >= 0 && i + n < this.props.size && i + n >= 0) {
                   if (this.state.tableData[i + n][j + m] === " ") {
                     return false;
                   }
@@ -294,48 +356,29 @@ async sendMoveToServer(playerId, move, shot) {
       return true;
     }
     
-    //rücksetzen auf default
-  handleReset() {
-    this.setState({
-      activePlayer: "White",
-      phase: "select",
-      startX: 0,
-      startY: 0,
-      endX: 0,
-      endY: 0,
-      shotX: 0,
-      shotY: 0,
-      legal: false,
-      tableData: [
-        [" ", " ", " ", "♛", " ", " ", "♛", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        ["♛", " ", " ", " ", " ", " ", " ", " ", " ", "♛"],
-        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        ["♕", " ", " ", " ", " ", " ", " ", " ", " ", "♕"],
-        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-        [" ", " ", " ", "♕", " ", " ", "♕", " ", " ", " "],
-      ]
-    });
-  }
+    handleReset() {
+      // Zustand zurücksetzen
+      this.setState({
+        activePlayer: "White",
+        phase: "select",
+        startX: 0,
+        startY: 0,
+        endX: 0,
+        endY: 0,
+        shotX: 0,
+        shotY: 0,
+        legal: false,
+        tableData: Array.from({ length: this.props.size }, () => Array.from({ length: this.props.size }, () => " ")),
+      }, () => { // Callback-Funktion, die aufgerufen wird, nachdem der Zustand aktualisiert wurde
+        this.placeInitialAmazons();
+      });
+    }
+    
 
 
   //aufbau des Spielfeldes in der Website
   render() {
-    let bg = [
-      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-      [-1, 0, -1, 0, -1, 0, -1, 0, -1, 0],
-      [0, -1, 0, -1, 0, -1, 0, -1, 0, -1],
-    ];
+    const { bg } = this.state; // bg aus dem Zustand holen
 
     const renderCell = (rowIndex, cellIndex, value, cell) => {
       let displayValue = value;
@@ -398,15 +441,15 @@ async sendMoveToServer(playerId, move, shot) {
         <div>{renderPlayer()}</div>  
         <div>{renderPhase()}</div>  
         <div className="playground-container">
-          <table>
-            <tbody>
-              {bg.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {row.map((cell, cellIndex) => renderCell(rowIndex, cellIndex, this.state.tableData[rowIndex][cellIndex], cell))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <table>
+          <tbody>
+            {bg.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, cellIndex) => renderCell(rowIndex, cellIndex, this.state.tableData[rowIndex][cellIndex], cell))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
           <div className="game-id-display">
             Game ID: {this.props.gameId}
           </div>
