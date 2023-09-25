@@ -13,9 +13,9 @@ async function fetchWithCheck(url, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}, message: ${data.message || response.statusText}`);
+    console.error('Gesamter Response-Body:', JSON.stringify(data));  // Logge den gesamten Response-Body
+    throw new Error(`HTTP error! status: ${response.status}, message: ${data.message || response.statusText}, body: ${JSON.stringify(data)}`);
   }
-
   return data;
 }
 
@@ -112,8 +112,10 @@ export async function makeMove(playerId, gameId, move, shot) {
     });
   } catch (error) {
     console.error('An error occurred:', error);
+    alert(`Ein Fehler ist aufgetreten: ${error.message}`);
     throw error;
   }
+  
 }
 
 

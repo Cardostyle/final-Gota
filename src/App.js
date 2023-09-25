@@ -61,20 +61,25 @@ function App() {
         return;
       }
   
-      // Überprüfen, ob der zweite Spieler bereits existiert
-      if (currentGame.players[1]) {
+      // Überprüfen, ob das 'players'-Array existiert und mindestens zwei Elemente hat
+      if (currentGame.players && currentGame.players.length > 1) {
         // Setzen Sie die ID des zweiten Spielers, um den Platz einzunehmen
         setGameId(currentGame.id);
         setCurrentPlayer("Black"); // Setzen des aktuellen Spielers auf "Black"
         setShowPlayground(true);
-        setCurrentPlayerID(currentGame.player[1].id);
+        setCurrentPlayerID(currentGame.players[1].id);
       } else {
         alert("Es gibt keinen zweiten Spieler im Spiel.");
       }
     } catch (error) {
-      console.log("Ein Fehler ist aufgetreten:", error);
+      if (error.message.includes("400")) { // Überprüfen, ob der Fehler einen Statuscode von 400 hat
+        alert("Spiel nicht gefunden mit der ID: " + gameId);
+      } else {
+        alert("Ein Fehler ist aufgetreten: " + error.message);
+      }
     }
   };
+  
 
   const handleGameIdChange = (e) => {
     setGameId(e.target.value);
@@ -104,7 +109,6 @@ function App() {
   const fetchGames = async () => {
     try {
       const games = await getAllGames();
-      console.log(games);
       setGamesList(games);
     } catch (error) {
       console.error("Ein Fehler ist aufgetreten:", error);
@@ -171,9 +175,18 @@ function App() {
             <button id="joinGame" onClick={handleJoinGame}>Join Game</button>
             <ul>
               <h3>Offene Spiele:</h3>
-              {gamesList.map((game, index) => (
-                <li key={index}>Game ID: {game.id}</li>
-              ))}
+              {gamesList && Array.isArray(gamesList.games) ? (
+                gamesList.games.length > 0 ? (
+                  gamesList.games.map((game, index) => (
+                    <li key={index}>Game ID: {game.id}</li>
+                  ))
+                ) : (
+                  <li>Keine offenen Spiele verfügbar.</li>
+                )
+              ) : (
+                <li>Fehler: Spieleliste konnte nicht geladen werden.</li>
+              )}
+
             </ul>
           </div>
         ) : (
