@@ -13,32 +13,36 @@ async function fetchWithCheck(url, options = {}) {
   }
 
   if (!response.ok) {
-    console.error('Gesamter Response-Body:', JSON.stringify(data));  // Logge den gesamten Response-Body
-    throw new Error(`HTTP error! status: ${response.status}, message: ${data.message || response.statusText}, body: ${JSON.stringify(data)}`);
+    console.error("Gesamter Response-Body:", JSON.stringify(data)); // Logge den gesamten Response-Body
+    throw new Error(
+      `HTTP error! status: ${response.status}, message: ${
+        data.message || response.statusText
+      }, body: ${JSON.stringify(data)}`,
+    );
   }
   return data;
 }
 
 // Spieler anlegen
 export async function createPlayer(name, controllable) {
-  return fetchWithCheck('https://gruppe5.toni-barth.com/players/', {
-    method: 'POST',
+  return fetchWithCheck("https://gruppe5.toni-barth.com/players/", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ name, controllable })
+    body: JSON.stringify({ name, controllable }),
   });
 }
 
 // Alle Spieler abfragen
 export async function getAllPlayers() {
-  return fetchWithCheck('https://gruppe5.toni-barth.com/players/');
+  return fetchWithCheck("https://gruppe5.toni-barth.com/players/");
 }
 
 // Spieler löschen
 export async function deletePlayer(id) {
   return fetchWithCheck(`https://gruppe5.toni-barth.com/players/${id}`, {
-    method: 'DELETE'
+    method: "DELETE",
   });
 }
 
@@ -48,11 +52,17 @@ export async function getPlayerById(id) {
 }
 
 // Ein neues Spiel starten
-export const createGame = async (maxTurnTime, players, gameSizeRows, gameSizeColumns, squares) => {
-  return fetchWithCheck('https://gruppe5.toni-barth.com/games/', {
-    method: 'POST',
+export const createGame = async (
+  maxTurnTime,
+  players,
+  gameSizeRows,
+  gameSizeColumns,
+  squares,
+) => {
+  return fetchWithCheck("https://gruppe5.toni-barth.com/games/", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       maxTurnTime,
@@ -60,15 +70,15 @@ export const createGame = async (maxTurnTime, players, gameSizeRows, gameSizeCol
       board: {
         gameSizeRows,
         gameSizeColumns,
-        squares
-      }
-    })
+        squares,
+      },
+    }),
   });
-}
+};
 
 // Alle Spiele abfragen
 export async function getAllGames() {
-  return fetchWithCheck('https://gruppe5.toni-barth.com/games/');
+  return fetchWithCheck("https://gruppe5.toni-barth.com/games/");
 }
 
 // Ein bestimmtes Spiel abfragen
@@ -79,50 +89,54 @@ export async function getGameById(id) {
 // Ein Spiel löschen
 export async function deleteGame(id) {
   return fetchWithCheck(`https://gruppe5.toni-barth.com/games/${id}`, {
-    method: 'DELETE'
+    method: "DELETE",
   });
 }
 
+//Einen Spielzug an den Server schicken
 export async function makeMove(playerId, gameId, move, shot) {
   try {
     const formattedMove = {
       start: {
         row: move.startX,
-        column: move.startY
+        column: move.startY,
       },
       end: {
         row: move.endX,
-        column: move.endY
-      }
+        column: move.endY,
+      },
     };
 
     const formattedShot = {
       row: shot.shotX,
-      column: shot.shotY
+      column: shot.shotY,
     };
-    const response = JSON.stringify({ move: formattedMove, shot: formattedShot })
-    alert(response)
-
-    return fetchWithCheck(`https://gruppe5.toni-barth.com/move/${playerId}/${gameId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ move: formattedMove, shot: formattedShot })  // Verwendung der angepassten Objekte
+    const response = JSON.stringify({
+      move: formattedMove,
+      shot: formattedShot,
     });
+    alert(response);
+
+    return fetchWithCheck(
+      `https://gruppe5.toni-barth.com/move/${playerId}/${gameId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ move: formattedMove, shot: formattedShot }), // Verwendung der angepassten Objekte
+      },
+    );
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error("An error occurred:", error);
     alert(`Ein Fehler ist aufgetreten: ${error.message}`);
     throw error;
   }
-  
 }
-
 
 // Alles auf Standardwerte zurücksetzen
 export async function resetAll() {
-  return fetchWithCheck('https://gruppe5.toni-barth.com/reset/', {
-    method: 'DELETE'
+  return fetchWithCheck("https://gruppe5.toni-barth.com/reset/", {
+    method: "DELETE",
   });
 }
-
