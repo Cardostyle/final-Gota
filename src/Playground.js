@@ -234,7 +234,7 @@ class Playground extends React.Component {
         console.error("Error Message:", data.message || "Unbekannter Fehler");
       } else {
         // Gibt eine Erfolgsmeldung aus, wenn der Zug erfolgreich gesendet wurde
-        console.log("Move sent:", data);
+        console.log("Move sent!");
       }
     } catch (error) {
       // Fängt etwaige Fehler ab und gibt sie in der Konsole aus
