@@ -174,3 +174,8 @@ button[id="joinGame"] {
   border: 2px solid red; /* Roter Rahmen */
   padding: 5px; /* Innenabstand für bessere Lesbarkeit */
 }
+
+/* Entfernt Aufzählungszeichen von ungeordneten Listen */
+ul {
+  list-style-type: none;
+}
