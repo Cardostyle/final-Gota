@@ -17,8 +17,6 @@ async function fetchWithCheck(url, options = {}) {
   return data;
 }
 
-
-
 // Spieler anlegen
 export async function createPlayer(name, controllable) {
   return fetchWithCheck("https://gruppe5.toni-barth.com/players/", {
@@ -132,7 +130,7 @@ export async function resetAll() {
   });
 }
 
-//nicht von nöten 
+//nicht von nöten
 // Funktion zum Zurücksetzen des Spielbretts auf dem Server
 export async function resetGameBoard(gameId, initialBoard) {
   return fetchWithCheck(`https://gruppe5.toni-barth.com/games/${gameId}`, {
@@ -148,4 +146,3 @@ export async function resetGameBoard(gameId, initialBoard) {
     }),
   });
 }
-

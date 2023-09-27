@@ -21,7 +21,7 @@ function App() {
   const [timePerTurn, setTimePerTurn] = useState(30); // Zeit pro Zug in Sekunden
   const [gamesList, setGamesList] = useState([]); // Liste aller Spiele
   const [numOfAmazons, setNumOfAmazons] = useState(1); // Anzahl der Amazonen (Spielfiguren) pro Spieler
-  
+
   // Zustandsvariablen für das benutzerdefinierte Spielfeld
   let [customBoard, setCustomBoard] = useState(
     Array.from({ length: boardSize }, () =>
@@ -29,7 +29,7 @@ function App() {
     ),
   );
   const [isCustomBoard, setIsCustomBoard] = useState(false); // Ob ein benutzerdefiniertes Spielfeld verwendet wird oder nicht
-  
+
   // Zustandsvariable für den Hintergrund des Spielfelds
   const [bg, setBg] = useState(
     Array.from({ length: boardSize }, (_, i) =>
@@ -133,7 +133,6 @@ function App() {
     setShowFooter(false);
   };
 
-
   const handleJoinGame = async () => {
     try {
       // Hole das Spiel mit der eingegebenen ID
@@ -142,7 +141,7 @@ function App() {
         alert("Spiel nicht gefunden mit der ID: " + gameId);
         return;
       }
-  
+
       // Überprüfe, ob es schon zwei Spieler im Spiel gibt
       if (currentGame.players && currentGame.players.length > 1) {
         // Überprüfe, ob der zweite Spieler "controllable" ist
@@ -150,13 +149,13 @@ function App() {
           // Setze die Spiel-ID und den aktuellen Spieler auf "Black"
           setGameId(currentGame.id);
           setCurrentPlayer("Black");
-          
+
           // Lade das Spielfeld des beizutretenden Spiels in die customBoard-Zustandsvariable
           setCustomBoard(currentGame.board.squares);
-          
+
           // Zeige das Spielfeld an
           setShowPlayground(true);
-          
+
           // Setze die ID des aktuellen Spielers
           setCurrentPlayerID(currentGame.players[1].id);
         } else {
@@ -174,10 +173,8 @@ function App() {
       }
     }
   };
-  
-  
 
-  //setzt die GameId 
+  //setzt die GameId
   const handleGameIdChange = (e) => {
     setGameId(e.target.value);
   };
@@ -189,7 +186,7 @@ function App() {
 
     //passt die Anzahl der Amazonen auf einen Angenehmen Wert an und lässt Glitches nicht zu
     // Überprüfen, ob numOfAmazons größer als die neue boardSize ist
-    if (numOfAmazons > newBoardSize ) {
+    if (numOfAmazons > newBoardSize) {
       setNumOfAmazons(newBoardSize);
     }
   };
@@ -199,12 +196,10 @@ function App() {
     setIsComputerOpponent(e.target.checked);
   };
 
-
   //setzt die Spiel-Zug-Zeit
   const handleTimePerTurnChange = (e) => {
     setTimePerTurn(parseInt(e.target.value));
   };
-
 
   //setzt alles zurück - nicht von nöten für das normale Spiel
   const handleResetAll = async () => {
@@ -216,7 +211,6 @@ function App() {
     }
   };
 
-
   //Zeigt die vollständige Liste an von verfügbaren Spielen
   const fetchGames = async () => {
     try {
@@ -226,7 +220,6 @@ function App() {
       console.error("Ein Fehler ist aufgetreten:", error);
     }
   };
-
 
   //lässt Amazonen auf dem Custom board platzieren
   const handleCustomBoardClick = (rowIndex, cellIndex) => {
@@ -253,15 +246,15 @@ function App() {
     setCustomBoard(newCustomBoard);
   };
 
-    // Die validateCustomBoard Funktion überprüft, ob die Anzahl der Amazonen für beide Spieler korrekt ist.
-    // Sie zählt die Anzahl der Amazonen für den weißen und den schwarzen Spieler und vergleicht sie mit der vorgegebenen Anzahl (numOfAmazons).
-    // Wenn die Anzahl für beide Spieler korrekt ist, gibt die Funktion true zurück, sonst false.
-    const validateCustomBoard = () => {
-      const whiteCount = customBoard.flat().filter((x) => x === 0).length;
-      const blackCount = customBoard.flat().filter((x) => x === 1).length;
+  // Die validateCustomBoard Funktion überprüft, ob die Anzahl der Amazonen für beide Spieler korrekt ist.
+  // Sie zählt die Anzahl der Amazonen für den weißen und den schwarzen Spieler und vergleicht sie mit der vorgegebenen Anzahl (numOfAmazons).
+  // Wenn die Anzahl für beide Spieler korrekt ist, gibt die Funktion true zurück, sonst false.
+  const validateCustomBoard = () => {
+    const whiteCount = customBoard.flat().filter((x) => x === 0).length;
+    const blackCount = customBoard.flat().filter((x) => x === 1).length;
 
-      return whiteCount === numOfAmazons && blackCount === numOfAmazons;
-    };
+    return whiteCount === numOfAmazons && blackCount === numOfAmazons;
+  };
 
   // Funktion zum Rendern der Zellen für das benutzerdefinierte Spielfeld
   const renderCustomCell = (rowIndex, cellIndex, value, cell) => {
@@ -331,7 +324,7 @@ function App() {
             />
             <span>{timePerTurn}</span>
             <br />
-            
+
             {/* Eingabefelder und Schieberegler für die Anzahl der Amazonen */}
             <label htmlFor="numOfAmazons">Anzahl der Amazonen</label>
             <input
@@ -344,7 +337,7 @@ function App() {
             />
             <span>{numOfAmazons}</span>
             <br />
-            
+
             {/* Checkbox für die Wahl, ob ein Computer der Gegner ist */}
             <label htmlFor="isComputerOpponent">COM</label>
             <input
@@ -461,8 +454,8 @@ function App() {
                     anpassen.
                   </li>
                   <li>
-                    (optional)Du kannst die Zeit die der
-                    jeweilige Spieler hat einstellen.
+                    (optional)Du kannst die Zeit die der jeweilige Spieler hat
+                    einstellen.
                   </li>
                   <li>
                     (optional) Du kannst die Anzahl der Amazonen einstellen,
@@ -476,7 +469,8 @@ function App() {
                     (optional) Du kannst die Amazonen auf der jeweiligen
                     Spielhälfte der jeweiligen Spieler platzieren. Achte darauf,
                     dass jeder Spieler die richtige Anzahl an Amazonen bekommt.
-                    Das Spiel soll ja Fair bleiben.Wenn du dies nicht machst werden Sie in der letzten bzw ersten Reihe aufgestellt.
+                    Das Spiel soll ja Fair bleiben.Wenn du dies nicht machst
+                    werden Sie in der letzten bzw ersten Reihe aufgestellt.
                   </li>
                   <li>
                     Drücke wenn alles nach belieben eingestellt wurde den Knopf

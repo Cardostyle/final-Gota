@@ -1,6 +1,12 @@
 //Playground.js
 import React from "react";
-import { deletePlayer, getGameById, deleteGame, makeMove, resetGameBoard } from "./Game";
+import {
+  deletePlayer,
+  getGameById,
+  deleteGame,
+  makeMove,
+  resetGameBoard,
+} from "./Game";
 
 //Konstruktor
 class Playground extends React.Component {
@@ -18,7 +24,7 @@ class Playground extends React.Component {
       shotY: 0,
       legal: false,
       remainingTurnTime: 999999999,
-      gameOver: false, 
+      gameOver: false,
       tableData: this.props.customBoard,
       originalTableData: JSON.parse(JSON.stringify(this.props.customBoard)), // Deep Copy
       bg: Array.from({ length: size }, (_, i) =>
@@ -60,7 +66,6 @@ class Playground extends React.Component {
       }
     }, 1000); // Aktualisiert jede halbe Sekunde
 
-
     //Initialisierung des Hintergrunds
     this.initializeBg(this.props.size);
   }
@@ -69,7 +74,7 @@ class Playground extends React.Component {
   checkIfFree(startX, startY, endX, endY) {
     const { tableData } = this.state;
     let legal = false;
-  
+
     if (startX === endX && startY === endY) {
       return legal;
     }
@@ -78,19 +83,23 @@ class Playground extends React.Component {
     if (tableData[endX][endY] !== -1) {
       return legal;
     }
-  
+
     if (
-      startX < 0 || startX >= tableData.length ||
-      endX < 0 || endX >= tableData.length ||
-      startY < 0 || startY >= tableData[0].length ||
-      endY < 0 || endY >= tableData[0].length
+      startX < 0 ||
+      startX >= tableData.length ||
+      endX < 0 ||
+      endX >= tableData.length ||
+      startY < 0 ||
+      startY >= tableData[0].length ||
+      endY < 0 ||
+      endY >= tableData[0].length
     ) {
       console.log("Out of Array");
       return legal;
     }
-  
+
     legal = true; // Setze legal auf true, es wird auf false gesetzt, wenn ein Hindernis gefunden wird
-  
+
     if (startX === endX) {
       const step = startY < endY ? 1 : -1;
       for (let n = startY + step; n !== endY; n += step) {
@@ -123,7 +132,6 @@ class Playground extends React.Component {
     }
     return legal;
   }
-  
 
   Game(rowIndex, cellIndex) {
     let { activePlayer, phase, tableData } = this.state;
@@ -225,7 +233,7 @@ class Playground extends React.Component {
     try {
       // Versucht, den Zug mit der Funktion makeMove() an den Server zu senden
       const data = await makeMove(playerId, this.props.gameId, move, shot);
-  
+
       // Überprüfen Sie den Status der Antwort hier
       if (data && data.status && data.status !== 200) {
         // Gibt Fehlerstatus und Fehlertext aus, wenn die Antwort nicht erfolgreich ist
@@ -240,7 +248,6 @@ class Playground extends React.Component {
       console.error("Ein Fehler ist aufgetreten:", error);
     }
   }
-  
 
   async fetchOpponentMove() {
     if (!this.props.gameId) {
@@ -252,7 +259,7 @@ class Playground extends React.Component {
       const turns = game.turns; // Liste aller Züge
       const lastTurn = turns[turns.length - 1]; // Letzter Zug
 
-      if (lastTurn && game.turnPlayer === this.props.currentPlayerID%2) {
+      if (lastTurn && game.turnPlayer === this.props.currentPlayerID % 2) {
         console.log("Move angekommen");
         let { tableData, activePlayer } = this.state;
 
@@ -286,7 +293,11 @@ class Playground extends React.Component {
       console.error("An error occurred:", error);
 
       // Überprüfen, ob die Fehlermeldung "game doesn't exist" enthält
-      if (error && error.message && error.message.includes("game doesn't exist")) {
+      if (
+        error &&
+        error.message &&
+        error.message.includes("game doesn't exist")
+      ) {
         //alert("Der andere Spieler hat das Spiel verlassen.");
         window.location.reload(); // Seite neu laden
       }
@@ -325,13 +336,14 @@ class Playground extends React.Component {
     const { remainingTurnTime, activePlayer, gameOver } = this.state;
     if ((remainingTurnTime === 0 || isNaN(remainingTurnTime)) && !gameOver) {
       const winningPlayer = activePlayer === "White" ? "Black" : "White";
-      alert(`Spieler ${winningPlayer} hat gewonnen, weil die Zeit des anderen Spielers abgelaufen ist oder er das Spiel verlassen hat.`);
-      clearInterval(this.timeInterval);  // Intervall stoppen
-      clearInterval(this.interval);  // Anderes Intervall stoppen
-      this.setState({ gameOver: true });  // Zustand auf "Spiel beendet" setzen
+      alert(
+        `Spieler ${winningPlayer} hat gewonnen, weil die Zeit des anderen Spielers abgelaufen ist oder er das Spiel verlassen hat.`,
+      );
+      clearInterval(this.timeInterval); // Intervall stoppen
+      clearInterval(this.interval); // Anderes Intervall stoppen
+      this.setState({ gameOver: true }); // Zustand auf "Spiel beendet" setzen
     }
   }
-
 
   //Nicht Möglich da man den Server nicht bearbeiten darf bzw das Board nicht zurücksetzen kann.
   async handleReset() {
@@ -348,17 +360,19 @@ class Playground extends React.Component {
       legal: false,
       tableData: JSON.parse(JSON.stringify(this.state.originalTableData)), // Deep Copy
     });
-  
+
     // Spielbrett auf dem Server zurücksetzen
     try {
       const initialBoard = this.state.originalTableData; // oder wie auch immer Ihr ursprüngliches Brett definiert ist
       await resetGameBoard(this.props.gameId, initialBoard);
       console.log("Spielbrett auf dem Server erfolgreich zurückgesetzt.");
     } catch (error) {
-      console.error("Fehler beim Zurücksetzen des Spielbretts auf dem Server:", error);
+      console.error(
+        "Fehler beim Zurücksetzen des Spielbretts auf dem Server:",
+        error,
+      );
     }
   }
-  
 
   //aufbau des Spielfeldes in der Website
   render() {
@@ -408,14 +422,17 @@ class Playground extends React.Component {
 
     const renderRemainingTime = () => {
       const timeInSeconds = Math.round(this.state.remainingTurnTime / 1000);
-      return <p>Remaining time: {isNaN(timeInSeconds) ? 0 : timeInSeconds} seconds</p>;
+      return (
+        <p>
+          Remaining time: {isNaN(timeInSeconds) ? 0 : timeInSeconds} seconds
+        </p>
+      );
     };
-    
 
     const handleDeleteGame = async () => {
       try {
         let game;
-        
+
         // Schritt 1: Spielinformationen abrufen
         game = await getGameById(this.props.gameId);
 
@@ -433,11 +450,10 @@ class Playground extends React.Component {
         // Seite neu laden
         window.location.reload();
       } catch (error) {
-         // Seite neu laden
-         window.location.reload();
+        // Seite neu laden
+        window.location.reload();
       }
     };
-    
 
     return (
       <div>
