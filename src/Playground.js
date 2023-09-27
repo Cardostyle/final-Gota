@@ -250,11 +250,13 @@ class Playground extends React.Component {
   }
 
   async fetchOpponentMove() {
-    if (!this.props.gameId) {
-      console.error("Game ID is not available.");
-      return;
-    }
     try {
+      if (!this.props.gameId) {
+        deleteGame(this.props.gameId);
+        console.error("Game ID is not available.");
+        return;
+      }
+      
       const game = await getGameById(this.props.gameId);
       const turns = game.turns; // Liste aller Züge
       const lastTurn = turns[turns.length - 1]; // Letzter Zug
