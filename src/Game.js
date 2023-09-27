@@ -2,26 +2,22 @@
 
 async function fetchWithCheck(url, options = {}) {
   const response = await fetch(url, options);
-  let data;
+  const text = await response.text();
 
-  // Try to parse the response as JSON, whether it's OK or not
+  let data;
   try {
-    data = await response.json();
+    data = JSON.parse(text);
   } catch (e) {
-    // If parsing fails, use the status text as the message
-    data = { message: response.statusText };
+    data = text;
   }
 
   if (!response.ok) {
-    console.error("Gesamter Response-Body:", JSON.stringify(data)); // Logge den gesamten Response-Body
-    throw new Error(
-      `HTTP error! status: ${response.status}, message: ${
-        data.message || response.statusText
-      }, body: ${JSON.stringify(data)}`,
-    );
+    throw new Error(`HTTP error! status: ${response.status}, message: ${data}`);
   }
   return data;
 }
+
+
 
 // Spieler anlegen
 export async function createPlayer(name, controllable) {
@@ -111,11 +107,6 @@ export async function makeMove(playerId, gameId, move, shot) {
       row: shot.shotX,
       column: shot.shotY,
     };
-    const response = JSON.stringify({
-      move: formattedMove,
-      shot: formattedShot,
-    });
-    alert(response);
 
     return fetchWithCheck(
       `https://gruppe5.toni-barth.com/move/${playerId}/${gameId}`,
@@ -140,3 +131,21 @@ export async function resetAll() {
     method: "DELETE",
   });
 }
+
+//nicht von nöten 
+// Funktion zum Zurücksetzen des Spielbretts auf dem Server
+export async function resetGameBoard(gameId, initialBoard) {
+  return fetchWithCheck(`https://gruppe5.toni-barth.com/games/${gameId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      board: initialBoard,
+      turnPlayer: 0,
+      turns: [],
+      // Weitere Felder, die zurückgesetzt werden sollen
+    }),
+  });
+}
+

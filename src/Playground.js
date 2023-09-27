@@ -1,6 +1,6 @@
 //Playground.js
 import React from "react";
-import { deletePlayer, getGameById, deleteGame, makeMove } from "./Game";
+import { deletePlayer, getGameById, deleteGame, makeMove, resetGameBoard } from "./Game";
 
 //Konstruktor
 class Playground extends React.Component {
@@ -23,6 +23,7 @@ class Playground extends React.Component {
         Array.from({ length: size }, (_, j) => ((i + j) % 2 === 0 ? 0 : -1)),
       ),
     };
+    this.handleReset = this.handleReset.bind(this);
   }
 
   // Die Funktion initializeTableDataAndBg initialisiert die Spielfeld-Daten und den Hintergrund des Spielfelds.
@@ -44,7 +45,7 @@ class Playground extends React.Component {
         this.fetchOpponentMove();
         console.log("fetching");
       }
-    }, 1000);
+    }, 2000);
 
     //Initialisierung des Hintergrunds
     this.initializeBg(this.props.size);
@@ -54,115 +55,62 @@ class Playground extends React.Component {
   checkIfFree(startX, startY, endX, endY) {
     const { tableData } = this.state;
     let legal = false;
-
-    //wenn start=Ende
+  
     if (startX === endX && startY === endY) {
       return legal;
     }
-
+  
     if (
-      startX < 0 ||
-      startX >= tableData.length ||
-      endX < 0 ||
-      endX >= tableData.length ||
-      startY < 0 ||
-      startY >= tableData[0].length ||
-      endY < 0 ||
-      endY >= tableData[0].length
+      startX < 0 || startX >= tableData.length ||
+      endX < 0 || endX >= tableData.length ||
+      startY < 0 || startY >= tableData[0].length ||
+      endY < 0 || endY >= tableData[0].length
     ) {
       console.log("Out of Array");
       return legal;
     }
-
-    //wenn auf Einer Senkrechten Ebene
+  
+    legal = true; // Setze legal auf true, es wird auf false gesetzt, wenn ein Hindernis gefunden wird
+  
     if (startX === endX) {
-      legal = true;
-
-      //wenn nach oben bewegt
-      if (startY < endY) {
-        for (let n = startY + 1; n <= endY; n++) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
-        }
-
-        //wenn nach unten bewegt
-      } else {
-        for (let n = startY - 1; n >= endY; n--) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
+      const step = startY < endY ? 1 : -1;
+      for (let n = startY + step; n !== endY; n += step) {
+        if (tableData[startX][n] !== -1) {
+          legal = false;
+          break;
         }
       }
-      //wenn auf einer Horizontalen
     } else if (startY === endY) {
-      legal = true;
-      //wenn nach rechts bewegt
-      if (startX < endX) {
-        for (let n = startX + 1; n <= endX; n++) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
-        }
-        //wenn nach links bewegt
-      } else {
-        for (let n = startX - 1; n >= endX; n--) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
+      const step = startX < endX ? 1 : -1;
+      for (let n = startX + step; n !== endX; n += step) {
+        if (tableData[n][startY] !== -1) {
+          legal = false;
+          break;
         }
       }
-      //neben-diagonalen
-    } else if (startX - startY === endX - endY) {
-      legal = true;
-      if (startX < endX) {
-        let n = startY + 1;
-        for (let m = startX + 1; m <= endX; m++) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
-          n++;
+    } else if (Math.abs(startX - endX) === Math.abs(startY - endY)) {
+      const stepX = startX < endX ? 1 : -1;
+      const stepY = startY < endY ? 1 : -1;
+      let y = startY + stepY;
+      for (let x = startX + stepX; x !== endX; x += stepX) {
+        if (tableData[x][y] !== -1) {
+          legal = false;
+          break;
         }
-      } else {
-        let n = startY - 1;
-        for (let m = startX - 1; m >= endX; m--) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
-          n--;
-        }
+        y += stepY;
       }
-      //Haupt-diagonalen
-    } else if (startX + startY === endX + endY) {
-      legal = true;
-      if (startX < endX) {
-        let n = startY - 1;
-        for (let m = startX + 1; m <= endX; m++) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
-          n--;
-        }
-      } else {
-        let n = startY + 1;
-        for (let m = startX - 1; m >= endX; m--) {
-          if (tableData[startX][n] !== -1) {
-            legal = false;
-            break;
-          }
-          n++;
-        }
-      }
+    } else {
+      console.log("Illegal diagonal");
+      legal = false;
     }
+  
+    if (!legal) {
+      console.log("Illegal Move");
+    }
+  
     return legal;
   }
+  
 
   Game(rowIndex, cellIndex) {
     let { activePlayer, phase, tableData } = this.state;
@@ -263,22 +211,23 @@ class Playground extends React.Component {
   async sendMoveToServer(playerId, move, shot) {
     try {
       // Versucht, den Zug mit der Funktion makeMove() an den Server zu senden
-      const response = await makeMove(playerId, this.props.gameId, move, shot);
-
-      // Überprüft den Status der Antwort
-      if (response.status !== 200) {
+      const data = await makeMove(playerId, this.props.gameId, move, shot);
+  
+      // Überprüfen Sie den Status der Antwort hier
+      if (data && data.status && data.status !== 200) {
         // Gibt Fehlerstatus und Fehlertext aus, wenn die Antwort nicht erfolgreich ist
-        console.error("Error:", response.status);
-        console.error("Error Text:", await response);
+        console.error("Error Status:", data.status);
+        console.error("Error Message:", data.message || "Unbekannter Fehler");
       } else {
         // Gibt eine Erfolgsmeldung aus, wenn der Zug erfolgreich gesendet wurde
-        console.log("Move sent:", response);
+        console.log("Move sent:", data);
       }
     } catch (error) {
       // Fängt etwaige Fehler ab und gibt sie in der Konsole aus
       console.error("Ein Fehler ist aufgetreten:", error);
     }
   }
+  
 
   async fetchOpponentMove() {
     if (!this.props.gameId) {
@@ -290,7 +239,8 @@ class Playground extends React.Component {
       const turns = game.turns; // Liste aller Züge
       const lastTurn = turns[turns.length - 1]; // Letzter Zug
 
-      if (lastTurn && game.turnPlayer === this.props.currentPlayerID) {
+      if (lastTurn && game.turnPlayer === this.props.currentPlayerID%2) {
+        console.log("Move angekommen");
         let { tableData, activePlayer } = this.state;
 
         // Aktualisieren der Position der Amazonen basierend auf dem Zug des Gegners
@@ -321,6 +271,12 @@ class Playground extends React.Component {
       }
     } catch (error) {
       console.error("An error occurred:", error);
+
+      // Überprüfen, ob die Fehlermeldung "game doesn't exist" enthält
+      if (error && error.message && error.message.includes("game doesn't exist")) {
+        //alert("Der andere Spieler hat das Spiel verlassen.");
+        window.location.reload(); // Seite neu laden
+      }
     }
   }
 
@@ -351,7 +307,9 @@ class Playground extends React.Component {
     return true;
   }
 
-  handleReset() {
+
+  //Nicht Möglich da man den Server nicht bearbeiten darf bzw das Board nicht zurücksetzen kann.
+  async handleReset() {
     // Zustand zurücksetzen
     this.setState({
       activePlayer: "White",
@@ -365,7 +323,17 @@ class Playground extends React.Component {
       legal: false,
       tableData: JSON.parse(JSON.stringify(this.state.originalTableData)), // Deep Copy
     });
+  
+    // Spielbrett auf dem Server zurücksetzen
+    try {
+      const initialBoard = this.state.originalTableData; // oder wie auch immer Ihr ursprüngliches Brett definiert ist
+      await resetGameBoard(this.props.gameId, initialBoard);
+      console.log("Spielbrett auf dem Server erfolgreich zurückgesetzt.");
+    } catch (error) {
+      console.error("Fehler beim Zurücksetzen des Spielbretts auf dem Server:", error);
+    }
   }
+  
 
   //aufbau des Spielfeldes in der Website
   render() {
@@ -401,8 +369,12 @@ class Playground extends React.Component {
       );
     };
 
-    const renderPlayer = () => {
-      return <p>Player: {this.state.activePlayer}</p>;
+    const renderOwnPlayer = () => {
+      return <p>Your Color: {this.props.playerName}</p>;
+    };
+
+    const renderActivePlayer = () => {
+      return <p>Active Player: {this.state.activePlayer}</p>;
     };
 
     const renderPhase = () => {
@@ -412,13 +384,9 @@ class Playground extends React.Component {
     const handleDeleteGame = async () => {
       try {
         let game;
-        try {
-          // Schritt 1: Spielinformationen abrufen
-          game = await getGameById(this.props.gameId);
-        } catch (error) {
-          // Seite neu laden
-          window.location.reload();
-        }
+        
+        // Schritt 1: Spielinformationen abrufen
+        game = await getGameById(this.props.gameId);
 
         // Schritt 2: Spiel löschen
         await deleteGame(this.props.gameId);
@@ -434,17 +402,21 @@ class Playground extends React.Component {
         // Seite neu laden
         window.location.reload();
       } catch (error) {
-        console.error("Ein Fehler ist aufgetreten:", error);
+         // Seite neu laden
+         window.location.reload();
       }
     };
 
     return (
       <div>
-        <button onClick={() => this.handleReset()}>Reset</button>
+        {/* unnötiger Button
+        <button onClick={this.handleReset}>Reset</button>
+        */}
         {this.props.gameId && (
           <button onClick={handleDeleteGame}>Spiel verlassen</button>
         )}
-        <div>{renderPlayer()}</div>
+        <div>{renderOwnPlayer()}</div>
+        <div>{renderActivePlayer()}</div>
         <div>{renderPhase()}</div>
         <div className="playground-container">
           <table>

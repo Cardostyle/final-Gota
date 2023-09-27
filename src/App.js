@@ -150,13 +150,16 @@ function App() {
         setGameId(currentGame.id);
         setCurrentPlayer("Black");
         
+        // Lade das Spielfeld des beizutretenden Spiels in die customBoard-Zustandsvariable
+        setCustomBoard(currentGame.board.squares);
+        
         // Zeige das Spielfeld an
         setShowPlayground(true);
         
         // Setze die ID des aktuellen Spielers
         setCurrentPlayerID(currentGame.players[1].id);
       } else {
-        // Wenn der zweite Spieler im Spiel eine KI ist zeige die Fehlermeldung
+        // Wenn der zweite Spieler im Spiel eine KI ist, zeige die Fehlermeldung
         alert("Es gibt keinen zweiten Spieler im Spiel.");
       }
     } catch (error) {
@@ -167,6 +170,7 @@ function App() {
       }
     }
   };
+  
   
 
   //setzt die GameId 
