@@ -21,21 +21,20 @@ function App() {
   const [timePerTurn, setTimePerTurn] = useState(30); // Zeit pro Zug in Sekunden
   const [gamesList, setGamesList] = useState([]); // Liste aller Spiele
   const [numOfAmazons, setNumOfAmazons] = useState(1); // Anzahl der Amazonen (Spielfiguren) pro Spieler
-
-  // Zustandsvariablen für das benutzerdefinierte Spielfeld
-  let [customBoard, setCustomBoard] = useState(
+  let [customBoard, setCustomBoard] = useState(  // Zustandsvariablen für das benutzerdefinierte Spielfeld
     Array.from({ length: boardSize }, () =>
       Array.from({ length: boardSize }, () => -1),
     ),
   );
   const [isCustomBoard, setIsCustomBoard] = useState(false); // Ob ein benutzerdefiniertes Spielfeld verwendet wird oder nicht
-
-  // Zustandsvariable für den Hintergrund des Spielfelds
-  const [bg, setBg] = useState(
+  const [bg, setBg] = useState(// Zustandsvariable für den Hintergrund des Spielfelds
     Array.from({ length: boardSize }, (_, i) =>
       Array.from({ length: boardSize }, (_, j) => ((i + j) % 2 === 0 ? 0 : -1)),
     ),
   );
+
+
+
 
   useEffect(() => {
     fetchGames();
@@ -95,12 +94,12 @@ function App() {
             Array.from({ length: gameSizeColumns }, (_, colIndex) => {
               // Platzieren der Amazonen und Giftpfeile
               if (rowIndex === 0 && colIndex < numOfAmazons) {
-                return 1; // Amazone des Spielers mit Index 0
+                return 1; // Amazone des Spielers mit Index 1
               } else if (
                 rowIndex === gameSizeRows - 1 &&
                 colIndex < numOfAmazons
               ) {
-                return 0; // Amazone des Spielers mit Index 1
+                return 0; // Amazone des Spielers mit Index 0
               } else {
                 return -1; // leeres Feld
               }
@@ -546,7 +545,7 @@ function App() {
         </footer>
       )}
 
-      {/* Button zum Zurücksetzen aller Einstellungen, nur sichtbar, wenn das Spielfeld nicht angezeigt wird */}
+      {/* Button zum Zurücksetzen aller Einstellungen, nur sichtbar, wenn das Spielfeld nicht angezeigt wird und hinter dem Footer */}
       {!showPlayground && (
         <button className="reset-button" onClick={handleResetAll}>
           Reset everything
