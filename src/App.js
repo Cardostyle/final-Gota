@@ -145,19 +145,23 @@ function App() {
   
       // Überprüfe, ob es schon zwei Spieler im Spiel gibt
       if (currentGame.players && currentGame.players.length > 1) {
-        
-        // Setze die Spiel-ID und den aktuellen Spieler auf "Black"
-        setGameId(currentGame.id);
-        setCurrentPlayer("Black");
-        
-        // Lade das Spielfeld des beizutretenden Spiels in die customBoard-Zustandsvariable
-        setCustomBoard(currentGame.board.squares);
-        
-        // Zeige das Spielfeld an
-        setShowPlayground(true);
-        
-        // Setze die ID des aktuellen Spielers
-        setCurrentPlayerID(currentGame.players[1].id);
+        // Überprüfe, ob der zweite Spieler "controllable" ist
+        if (currentGame.players[1].controllable) {
+          // Setze die Spiel-ID und den aktuellen Spieler auf "Black"
+          setGameId(currentGame.id);
+          setCurrentPlayer("Black");
+          
+          // Lade das Spielfeld des beizutretenden Spiels in die customBoard-Zustandsvariable
+          setCustomBoard(currentGame.board.squares);
+          
+          // Zeige das Spielfeld an
+          setShowPlayground(true);
+          
+          // Setze die ID des aktuellen Spielers
+          setCurrentPlayerID(currentGame.players[1].id);
+        } else {
+          alert("Spiel ist nicht Multiplayer.");
+        }
       } else {
         // Wenn der zweite Spieler im Spiel eine KI ist, zeige die Fehlermeldung
         alert("Es gibt keinen zweiten Spieler im Spiel.");
@@ -472,7 +476,7 @@ function App() {
                     (optional) Du kannst die Amazonen auf der jeweiligen
                     Spielhälfte der jeweiligen Spieler platzieren. Achte darauf,
                     dass jeder Spieler die richtige Anzahl an Amazonen bekommt.
-                    Das Spiel soll ja Fair bleiben.
+                    Das Spiel soll ja Fair bleiben.Wenn du dies nicht machst werden Sie in der letzten bzw ersten Reihe aufgestellt.
                   </li>
                   <li>
                     Drücke wenn alles nach belieben eingestellt wurde den Knopf

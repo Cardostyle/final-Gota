@@ -55,11 +55,10 @@ class Playground extends React.Component {
         const game = await getGameById(this.props.gameId);
         this.setState({ remainingTurnTime: game.remainingTurnTime });
         this.WinAfterTime();
-        console.log(game.players);
       } catch (error) {
         console.error("Fehler beim Abrufen der verbleibenden Zugzeit:", error);
       }
-    }, 500); // Aktualisiert jede halbe Sekunde
+    }, 1000); // Aktualisiert jede halbe Sekunde
 
 
     //Initialisierung des Hintergrunds
@@ -77,7 +76,6 @@ class Playground extends React.Component {
 
     // Überprüfe, ob der Endpunkt frei ist
     if (tableData[endX][endY] !== -1) {
-      console.log("Endpunkt ist nicht frei");
       return legal;
     }
   
@@ -121,14 +119,8 @@ class Playground extends React.Component {
         y += stepY;
       }
     } else {
-      console.log("Illegal diagonal");
       legal = false;
     }
-  
-    if (!legal) {
-      console.log("Illegal Move");
-    }
-  
     return legal;
   }
   
@@ -333,7 +325,7 @@ class Playground extends React.Component {
     const { remainingTurnTime, activePlayer, gameOver } = this.state;
     if ((remainingTurnTime === 0 || isNaN(remainingTurnTime)) && !gameOver) {
       const winningPlayer = activePlayer === "White" ? "Black" : "White";
-      alert(`Spieler ${winningPlayer} hat gewonnen, weil die Zeit des anderen Spielers abgelaufen ist.`);
+      alert(`Spieler ${winningPlayer} hat gewonnen, weil die Zeit des anderen Spielers abgelaufen ist oder er das Spiel verlassen hat.`);
       clearInterval(this.timeInterval);  // Intervall stoppen
       clearInterval(this.interval);  // Anderes Intervall stoppen
       this.setState({ gameOver: true });  // Zustand auf "Spiel beendet" setzen
