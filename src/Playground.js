@@ -55,6 +55,7 @@ class Playground extends React.Component {
         const game = await getGameById(this.props.gameId);
         this.setState({ remainingTurnTime: game.remainingTurnTime });
         this.WinAfterTime();
+        console.log(game.players);
       } catch (error) {
         console.error("Fehler beim Abrufen der verbleibenden Zugzeit:", error);
       }
@@ -71,6 +72,12 @@ class Playground extends React.Component {
     let legal = false;
   
     if (startX === endX && startY === endY) {
+      return legal;
+    }
+
+    // Überprüfe, ob der Endpunkt frei ist
+    if (tableData[endX][endY] !== -1) {
+      console.log("Endpunkt ist nicht frei");
       return legal;
     }
   
