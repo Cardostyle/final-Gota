@@ -44,10 +44,9 @@ function App() {
       const newCustomBoard = Array.from({ length: boardSize }, () =>
         Array.from({ length: boardSize }, () => -1),
       );
-      // Fügen Sie hier Ihren Code hinzu, um die Amazonen oder andere Elemente auf dem benutzerdefinierten Spielfeld zu platzieren
       setCustomBoard(newCustomBoard);
     } else {
-      // Erstellen Sie ein Standard-Spielfeld
+      // Erstellen eines Standard-Spielfeld
       setCustomBoard(
         Array.from({ length: boardSize }, () =>
           Array.from({ length: boardSize }, () => -1),
