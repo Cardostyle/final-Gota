@@ -17,6 +17,8 @@ class Playground extends React.Component {
       shotX: 0,
       shotY: 0,
       legal: false,
+      remainingTurnTime: 999999999,
+      gameOver: false, 
       tableData: this.props.customBoard,
       originalTableData: JSON.parse(JSON.stringify(this.props.customBoard)), // Deep Copy
       bg: Array.from({ length: size }, (_, i) =>
@@ -46,6 +48,18 @@ class Playground extends React.Component {
         console.log("fetching");
       }
     }, 2000);
+
+    // Intervall für das Abrufen der verbleibenden Zugzeit einrichten
+    this.timeInterval = setInterval(async () => {
+      try {
+        const game = await getGameById(this.props.gameId);
+        this.setState({ remainingTurnTime: game.remainingTurnTime });
+        this.WinAfterTime();
+      } catch (error) {
+        console.error("Fehler beim Abrufen der verbleibenden Zugzeit:", error);
+      }
+    }, 500); // Aktualisiert jede halbe Sekunde
+
 
     //Initialisierung des Hintergrunds
     this.initializeBg(this.props.size);
@@ -307,6 +321,18 @@ class Playground extends React.Component {
     return true;
   }
 
+  // Neue Funktion, die überprüft, ob die Zeit abgelaufen ist
+  WinAfterTime() {
+    const { remainingTurnTime, activePlayer, gameOver } = this.state;
+    if ((remainingTurnTime === 0 || isNaN(remainingTurnTime)) && !gameOver) {
+      const winningPlayer = activePlayer === "White" ? "Black" : "White";
+      alert(`Spieler ${winningPlayer} hat gewonnen, weil die Zeit des anderen Spielers abgelaufen ist.`);
+      clearInterval(this.timeInterval);  // Intervall stoppen
+      clearInterval(this.interval);  // Anderes Intervall stoppen
+      this.setState({ gameOver: true });  // Zustand auf "Spiel beendet" setzen
+    }
+  }
+
 
   //Nicht Möglich da man den Server nicht bearbeiten darf bzw das Board nicht zurücksetzen kann.
   async handleReset() {
@@ -381,6 +407,12 @@ class Playground extends React.Component {
       return <p>Phase: {this.state.phase}</p>;
     };
 
+    const renderRemainingTime = () => {
+      const timeInSeconds = Math.round(this.state.remainingTurnTime / 1000);
+      return <p>Remaining time: {isNaN(timeInSeconds) ? 0 : timeInSeconds} seconds</p>;
+    };
+    
+
     const handleDeleteGame = async () => {
       try {
         let game;
@@ -406,6 +438,7 @@ class Playground extends React.Component {
          window.location.reload();
       }
     };
+    
 
     return (
       <div>
@@ -413,11 +446,12 @@ class Playground extends React.Component {
         <button onClick={this.handleReset}>Reset</button>
         */}
         {this.props.gameId && (
-          <button onClick={handleDeleteGame}>Spiel verlassen</button>
+          <button onClick={handleDeleteGame}>Leave Game</button>
         )}
         <div>{renderOwnPlayer()}</div>
         <div>{renderActivePlayer()}</div>
         <div>{renderPhase()}</div>
+        <div>{renderRemainingTime()}</div>
         <div className="playground-container">
           <table>
             <tbody>

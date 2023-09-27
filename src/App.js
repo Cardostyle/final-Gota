@@ -457,7 +457,7 @@ function App() {
                     anpassen.
                   </li>
                   <li>
-                    (optional)(nicht implementiert) Du kannst die Zeit die der
+                    (optional)Du kannst die Zeit die der
                     jeweilige Spieler hat einstellen.
                   </li>
                   <li>
