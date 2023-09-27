@@ -293,23 +293,28 @@ function App() {
         {!showPlayground ? (
           /* Eingabefelder und Schieberegler für die Spielfeldgröße */
           <div>
-            <label htmlFor="boardSize">Spielfeldgröße</label>
-            <input
-              type="range"
-              id="boardSize"
-              min="10"
-              max="20"
-              value={boardSize}
-              onChange={handleBoardSizeChange}
-            />
-            <span>{boardSize}</span>
-            {boardSize > 10 && (
-              <div className="warning-box">
-                Warnung: Für mobile kleine Geräte wird nur die 10er
-                Spielfeldgröße empfohlen
+            {/* Eingabefelder und Schieberegler für die Spielfeldgröße */}
+            {!isCustomBoard && (
+              <div>
+                <label htmlFor="boardSize">Spielfeldgröße</label>
+                <input
+                  type="range"
+                  id="boardSize"
+                  min="10"
+                  max="20"
+                  value={boardSize}
+                  onChange={handleBoardSizeChange}
+                />
+                <span>{boardSize}</span>
+                {boardSize > 10 && (
+                  <div className="warning-box">
+                    Warnung: Für mobile kleine Geräte wird nur die 10er
+                    Spielfeldgröße empfohlen
+                  </div>
+                )}
+                <br />
               </div>
             )}
-            <br />
             {/* Eingabefelder und Schieberegler für die Zeit pro Zug */}
             <label htmlFor="timePerTurn">Zeit pro Zug</label>
             <input

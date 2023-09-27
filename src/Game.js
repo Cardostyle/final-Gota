@@ -1,5 +1,6 @@
 //Game.js
 
+//hilfsfunktion
 async function fetchWithCheck(url, options = {}) {
   const response = await fetch(url, options);
   const text = await response.text();
