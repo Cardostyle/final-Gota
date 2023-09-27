@@ -181,8 +181,8 @@ function App() {
 
     //passt die Anzahl der Amazonen auf einen Angenehmen Wert an und lässt Glitches nicht zu
     // Überprüfen, ob numOfAmazons größer als die neue boardSize ist
-    if (numOfAmazons > newBoardSize * 2) {
-      setNumOfAmazons(newBoardSize * 2);
+    if (numOfAmazons > newBoardSize ) {
+      setNumOfAmazons(newBoardSize);
     }
   };
 
@@ -330,7 +330,7 @@ function App() {
               type="range"
               id="numOfAmazons"
               min="1"
-              max={boardSize * 2}
+              max={boardSize}
               value={numOfAmazons}
               onChange={(e) => setNumOfAmazons(parseInt(e.target.value))}
             />
