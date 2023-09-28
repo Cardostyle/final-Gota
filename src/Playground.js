@@ -234,7 +234,7 @@ class Playground extends React.Component {
       // Versucht, den Zug mit der Funktion makeMove() an den Server zu senden
       const data = await makeMove(playerId, this.props.gameId, move, shot);
 
-      // Überprüfen Sie den Status der Antwort hier
+      // Überprüfe den Status der Antwort hier
       if (data && data.status && data.status !== 200) {
         // Gibt Fehlerstatus und Fehlertext aus, wenn die Antwort nicht erfolgreich ist
         console.error("Error Status:", data.status);
