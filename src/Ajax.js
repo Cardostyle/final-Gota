@@ -1,4 +1,4 @@
-//Game.js
+//Ajax.js
 
 //hilfsfunktion
 async function fetchWithCheck(url, options = {}) {
