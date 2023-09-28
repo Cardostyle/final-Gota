@@ -64,7 +64,7 @@ class Playground extends React.Component {
       } catch (error) {
         console.error("Fehler beim Abrufen der verbleibenden Zugzeit:", error);
       }
-    }, 1000); // Aktualisiert jede halbe Sekunde
+    }, 1000); // Aktualisiert jede Sekunde
 
     //Initialisierung des Hintergrunds
     this.initializeBg(this.props.size);
