@@ -6,7 +6,7 @@ import {
   deleteGame,
   makeMove,
   resetGameBoard,
-} from "./Game";
+} from "./Ajax";
 
 //Konstruktor
 class Playground extends React.Component {

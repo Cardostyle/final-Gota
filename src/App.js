@@ -7,7 +7,7 @@ import {
   getGameById,
   resetAll,
   getAllGames,
-} from "./Game"; // Importieren der API-Funktionen
+} from "./Ajax"; // Importieren der API-Funktionen
 
 function App() {
   // Zustandsvariablen mit ihren Anfangswerten
